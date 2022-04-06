@@ -1,5 +1,5 @@
 use super::{
-    movement::SendEntityEvent, objects::Movable, pointer::Pointer, selection::Selected, Labels,
+    movement::SendFlockEvent, objects::Movable, pointer::Pointer, selection::Selected, Labels,
 };
 use bevy::{
     input::mouse::MouseButtonInput,
@@ -26,7 +26,7 @@ impl Plugin for CommandPlugin {
 
 fn mouse_click_handler(
     mut click_events: EventReader<MouseButtonInput>,
-    mut send_entity_events: EventWriter<SendEntityEvent>,
+    mut send_flock_events: EventWriter<SendFlockEvent>,
     selected: Query<Entity, (With<Selected>, With<Movable>)>,
     pointer: Res<Pointer>,
 ) {
@@ -39,7 +39,6 @@ fn mouse_click_handler(
         None => return,
     };
 
-    for entity in selected.iter() {
-        send_entity_events.send(SendEntityEvent::new(entity, target));
-    }
+    let selected_entities: Vec<Entity> = selected.iter().collect();
+    send_flock_events.send(SendFlockEvent::new(selected_entities, target));
 }
