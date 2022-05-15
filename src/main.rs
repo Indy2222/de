@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::WindowMode};
-use lib::GamePluginGroup;
+use de_game::GamePluginGroup;
+use de_gui::GuiPluginGroup;
 
 fn main() {
     App::new()
@@ -11,5 +12,6 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .add_plugins(DefaultPlugins)
         .add_plugins(GamePluginGroup)
+        .add_plugins(GuiPluginGroup)
         .run();
 }
