@@ -12,11 +12,7 @@ use de_map::{
 use futures_lite::future;
 use iyes_loopless::prelude::*;
 
-use super::terrain::Terrain;
-use crate::{
-    assets::asset_path,
-    game::{camera::MoveFocusEvent, spawner::SpawnEvent},
-};
+use super::{assets::asset_path, camera::MoveFocusEvent, spawner::SpawnEvent, terrain::Terrain};
 
 pub struct MapLoaderPlugin;
 

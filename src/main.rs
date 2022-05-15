@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::WindowMode};
-use de_game::game::GamePluginGroup;
+use lib::GamePluginGroup;
 
 fn main() {
     App::new()
