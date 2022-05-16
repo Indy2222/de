@@ -129,6 +129,9 @@ impl MoveFocusEvent {
     }
 }
 
+#[derive(Component)]
+pub struct CameraMakrer;
+
 struct CameraFocus {
     point: Vec3,
     distance: f32,
@@ -231,18 +234,20 @@ fn setup(mut commands: Commands) {
         point: Vec3::ZERO,
         distance: MAX_CAMERA_DISTANCE,
     });
-    commands.spawn_bundle(PerspectiveCameraBundle {
-        transform: Transform::from_xyz(0.0, MAX_CAMERA_DISTANCE, 0.0)
-            .looking_at(Vec3::ZERO, -Vec3::Z),
-        ..Default::default()
-    });
+    commands
+        .spawn_bundle(PerspectiveCameraBundle {
+            transform: Transform::from_xyz(0.0, MAX_CAMERA_DISTANCE, 0.0)
+                .looking_at(Vec3::ZERO, -Vec3::Z),
+            ..Default::default()
+        })
+        .insert(CameraMakrer);
 }
 
 fn update_focus(
     mut event: EventReader<FocusInvalidatedEvent>,
     mut focus: ResMut<CameraFocus>,
     terrain: TerrainCollider,
-    camera_query: Query<&GlobalTransform, With<Camera>>,
+    camera_query: Query<&GlobalTransform, With<CameraMakrer>>,
 ) {
     if event.iter().count() == 0 {
         return;
@@ -267,7 +272,7 @@ fn update_focus(
 fn process_move_focus_events(
     mut events: EventReader<MoveFocusEvent>,
     mut focus: ResMut<CameraFocus>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut camera_query: Query<&mut Transform, With<CameraMakrer>>,
 ) {
     let event = match events.iter().last() {
         Some(event) => event,
@@ -286,7 +291,7 @@ fn move_horizontaly(
     focus: Res<CameraFocus>,
     map_bounds: Res<MapBounds>,
     time: Res<Time>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut camera_query: Query<&mut Transform, With<CameraMakrer>>,
     mut event: EventWriter<FocusInvalidatedEvent>,
 ) {
     let direction = match horizontal_movement.movement() {
@@ -318,7 +323,7 @@ fn zoom(
     desired_pow: Res<DesiredPoW>,
     time: Res<Time>,
     mut focus: ResMut<CameraFocus>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut camera_query: Query<&mut Transform, With<CameraMakrer>>,
 ) {
     let mut delta_scalar = focus.distance() - HARD_MAX_CAMERA_DISTANCE;
     if delta_scalar <= 0. {
@@ -349,7 +354,7 @@ fn pivot(
     mut event: EventReader<PivotEvent>,
     desired_pow: Res<DesiredPoW>,
     focus: Res<CameraFocus>,
-    mut camera_query: Query<&mut Transform, With<Camera>>,
+    mut camera_query: Query<&mut Transform, With<CameraMakrer>>,
 ) {
     if event.iter().next().is_none() {
         return;

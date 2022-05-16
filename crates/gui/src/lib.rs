@@ -1,11 +1,26 @@
-use bevy::{app::PluginGroupBuilder, prelude::*, transform::TransformSystem};
+use bevy::{
+    app::PluginGroupBuilder,
+    prelude::*,
+    render::{
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+        texture::CompressedImageFormats,
+    },
+    sprite::MaterialMesh2dBundle,
+    transform::TransformSystem,
+};
 use bevy_egui::{
     egui::{epaint::RectShape, Color32, Frame, Painter, Pos2, Rect, Rounding, Sense, Vec2, Window},
     EguiContext, EguiPlugin,
 };
 use de_core::{objects::SolidObject, state::GameState};
 use de_map::size::MapBounds;
+use draw::ImageDraw;
 use iyes_loopless::prelude::*;
+use mapview::MapView;
+use rgb::{RGBA, RGBA8};
+
+mod draw;
+mod mapview;
 
 // TODO: disallow clicks through UI
 
@@ -15,7 +30,7 @@ pub struct GuiPluginGroup;
 
 impl PluginGroup for GuiPluginGroup {
     fn build(&mut self, group: &mut PluginGroupBuilder) {
-        group.add(EguiPlugin).add(GuiPlugin);
+        group.add(GuiPlugin);
     }
 }
 
@@ -23,7 +38,7 @@ struct GuiPlugin;
 
 impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(GameState::Playing, setup_game_ui)
+        app.add_enter_system(GameState::Playing, setup_map_view)
             .add_system_to_stage(
                 CoreStage::PostUpdate,
                 game_ui
@@ -33,85 +48,55 @@ impl Plugin for GuiPlugin {
     }
 }
 
-struct ViewTransform {
-    px_rect: Rect,
-    m_origin: glam::Vec2,
-    m_to_px: f32,
-}
+struct X(Handle<ColorMaterial>);
 
-impl ViewTransform {
-    fn new(bounds: &MapBounds, screen: Rect, max_screen_fraction: f32) -> Self {
-        let map_size_m = bounds.max() - bounds.min();
-        let map_size_m = Vec2::new(map_size_m.x, map_size_m.y);
-        let max_size_px = max_screen_fraction * screen.size();
-        let m_to_px = (max_size_px / map_size_m).min_elem();
-        let px_origin = screen.max - m_to_px * map_size_m;
-        let px_rect = Rect {
-            min: Pos2::new(px_origin.x, px_origin.y),
-            max: screen.max,
-        };
+fn setup_map_view(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut images: ResMut<Assets<Image>>,
+) {
+    let map_view = MapView::init(UVec2::new(200, 100), images.as_mut());
 
-        Self {
-            px_rect,
-            m_origin: bounds.min(),
-            m_to_px,
-        }
-    }
+    let material = materials.add(ColorMaterial {
+        color: Color::WHITE,
+        texture: Some(map_view.image_handle()),
+    });
+    commands.spawn_bundle(OrthographicCameraBundle::new_2d());
+    commands.spawn_bundle(MaterialMesh2dBundle {
+        mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
+        transform: Transform::default().with_scale(Vec3::new(200., 100., 0.)),
+        material: material.clone(),
+        ..default()
+    });
 
-    fn px_rect(&self) -> Rect {
-        self.px_rect
-    }
-
-    fn px_to_meters(&self, pos: Pos2) -> glam::Vec2 {
-        let px_offset = pos - self.px_rect.min;
-        self.m_origin + glam::Vec2::new(px_offset.x, px_offset.y) / self.m_to_px
-    }
-
-    fn meters_to_px(&self, pos: glam::Vec2) -> Pos2 {
-        let px_offset = self.m_to_px * (pos - self.m_origin);
-        self.px_rect.min + Vec2::new(px_offset.x, px_offset.y)
-    }
-}
-
-fn setup_game_ui(mut commands: Commands, bounds: Res<MapBounds>, mut ctx: ResMut<EguiContext>) {
-    commands.insert_resource(ViewTransform::new(
-        bounds.as_ref(),
-        ctx.ctx_mut().available_rect(),
-        MAP_VIEW_SIZE,
-    ));
+    commands.insert_resource(map_view);
+    commands.insert_resource(X(material));
 }
 
 fn game_ui(
-    mut ctx: ResMut<EguiContext>,
-    view_transform: Res<ViewTransform>,
-    objects: Query<&GlobalTransform, With<SolidObject>>,
+    image: Res<MapView>,
+    x: Res<X>,
+    mut images: ResMut<Assets<Image>>,
+    time: Res<Time>,
+    mut events_a: EventWriter<AssetEvent<Image>>,
+    mut events_b: EventWriter<AssetEvent<ColorMaterial>>,
 ) {
-    Window::new("map-view")
-        .fixed_rect(view_transform.px_rect())
-        .title_bar(false)
-        .frame(Frame::none())
-        .show(ctx.ctx_mut(), |ui| {
-            Frame::none().fill(Color32::BLACK).show(ui, |ui| {
-                let view_size = view_transform.px_rect().size();
-                let (_response, painter) = ui.allocate_painter(view_size, Sense::click());
-                draw_objects(painter, view_transform.as_ref(), &objects);
-            });
-        });
-}
+    let green = (100. * time.seconds_since_startup()).rem_euclid(256.) as u8;
 
-fn draw_objects(
-    painter: Painter,
-    view_transform: &ViewTransform,
-    objects: &Query<&GlobalTransform, With<SolidObject>>,
-) {
-    for transform in objects.iter() {
-        let pos_m = glam::Vec2::new(transform.translation.x, transform.translation.z);
-        let px_pox = view_transform.meters_to_px(pos_m);
-        let rect = Rect {
-            min: px_pox - Vec2::new(1., 1.),
-            max: px_pox + Vec2::new(1., 1.),
-        };
-        let shape = RectShape::filled(rect, Rounding::none(), Color32::BLUE);
-        painter.add(shape);
+    let mut draw = image.get_draw(images.as_mut()).unwrap();
+
+    for y in 0..100 {
+        for x in 0..200 {
+            if y == 10 {
+                draw.set_pixel(UVec2::new(x, y), RGBA8::new(255, 0, 128, 255));
+            } else {
+                draw.set_pixel(UVec2::new(x, y), RGBA8::new(0, green, 0, 255));
+            }
+        }
     }
+
+    events_b.send(AssetEvent::Modified {
+        handle: x.0.clone(),
+    });
 }

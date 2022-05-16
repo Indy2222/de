@@ -1603,6 +1603,7 @@ dependencies = [
  "de_map",
  "glam",
  "iyes_loopless",
+ "rgb",
 ]
 
 [[package]]
@@ -3318,6 +3319,15 @@ name = "renderdoc-sys"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1382d1f0a252c4bf97dc20d979a2fdd05b024acd7c2ed0f7595d7817666a157"
+
+[[package]]
+name = "rgb"
+version = "0.8.32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e74fdc210d8f24a7dbfedc13b04ba5764f5232754ccebfdf5fff1bad791ccbc6"
+dependencies = [
+ "bytemuck",
+]
 
 [[package]]
 name = "robust"

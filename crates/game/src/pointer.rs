@@ -13,6 +13,7 @@ use iyes_loopless::prelude::*;
 use parry3d::query::Ray;
 
 use super::{terrain::TerrainCollider, Labels};
+use crate::camera::CameraMakrer;
 
 pub struct PointerPlugin;
 
@@ -58,7 +59,7 @@ impl Pointer {
 #[derive(SystemParam)]
 struct MouseInWorld<'w, 's> {
     windows: Res<'w, Windows>,
-    cameras: Query<'w, 's, (&'static GlobalTransform, &'static Camera)>,
+    cameras: Query<'w, 's, (&'static GlobalTransform, &'static Camera), With<CameraMakrer>>,
 }
 
 impl<'w, 's> MouseInWorld<'w, 's> {

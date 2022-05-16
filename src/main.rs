@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::WindowMode};
 use de_game::GamePluginGroup;
-use de_gui::GuiPluginGroup;
+use lib::GuiPluginGroup;
 
 fn main() {
     App::new()
