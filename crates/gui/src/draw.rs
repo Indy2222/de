@@ -26,4 +26,8 @@ impl<'a> ImageDraw<'a> {
         self.image.data[index + 2] = color.b;
         self.image.data[index + 3] = color.a;
     }
+
+    pub fn data(&self) -> &[u8] {
+        &self.image.data
+    }
 }

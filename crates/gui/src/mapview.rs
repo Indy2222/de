@@ -24,7 +24,7 @@ impl MapView {
         let num_bytes = 4 * (size.x as usize) * (size.y as usize);
         image.data = Vec::with_capacity(num_bytes);
         for _ in 0..num_bytes {
-            image.data.push(0);
+            image.data.push(255);
         }
 
         Self {

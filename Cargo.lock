@@ -1604,6 +1604,7 @@ dependencies = [
  "glam",
  "iyes_loopless",
  "rgb",
+ "wgpu",
 ]
 
 [[package]]

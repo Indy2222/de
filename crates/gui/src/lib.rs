@@ -2,8 +2,13 @@ use bevy::{
     app::PluginGroupBuilder,
     prelude::*,
     render::{
-        render_resource::{Extent3d, TextureDimension, TextureFormat},
+        render_asset::RenderAssets,
+        render_resource::{
+            Extent3d, ImageCopyTexture, ImageDataLayout, Origin3d, TextureDimension, TextureFormat,
+        },
+        renderer::RenderQueue,
         texture::CompressedImageFormats,
+        RenderApp, RenderStage,
     },
     sprite::MaterialMesh2dBundle,
     transform::TransformSystem,
@@ -38,13 +43,10 @@ struct GuiPlugin;
 
 impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_enter_system(GameState::Playing, setup_map_view)
-            .add_system_to_stage(
-                CoreStage::PostUpdate,
-                game_ui
-                    .run_in_state(GameState::Playing)
-                    .after(TransformSystem::TransformPropagate),
-            );
+        app.add_enter_system(GameState::Playing, setup_map_view);
+        app.get_sub_app_mut(RenderApp)
+            .unwrap()
+            .add_system_to_stage(RenderStage::Prepare, game_ui.run_if_resource_exists::<X>());
     }
 }
 
@@ -78,11 +80,15 @@ fn game_ui(
     image: Res<MapView>,
     x: Res<X>,
     mut images: ResMut<Assets<Image>>,
-    time: Res<Time>,
-    mut events_a: EventWriter<AssetEvent<Image>>,
-    mut events_b: EventWriter<AssetEvent<ColorMaterial>>,
+    //time: Res<Time>,
+    // mut events_a: EventWriter<AssetEvent<Image>>,
+    // mut events_b: EventWriter<AssetEvent<ColorMaterial>>,
+    mut queue: ResMut<RenderQueue>,
+    rassets: Res<RenderAssets<Image>>,
 ) {
-    let green = (100. * time.seconds_since_startup()).rem_euclid(256.) as u8;
+    println!("Runningslkhflksjdflkjsdfe");
+
+    let green = 50;
 
     let mut draw = image.get_draw(images.as_mut()).unwrap();
 
@@ -96,7 +102,34 @@ fn game_ui(
         }
     }
 
-    events_b.send(AssetEvent::Modified {
-        handle: x.0.clone(),
-    });
+    let data: Vec<u8> = draw.data().iter().cloned().collect();
+
+    // events_b.send(AssetEvent::Modified {
+    //     handle: x.0.clone(),
+    // });
+
+    let gpu_image = rassets.get(&image.image_handle()).unwrap();
+
+    let img2 = images.get(image.image_handle()).unwrap();
+    queue.write_texture(
+        ImageCopyTexture {
+            texture: &gpu_image.texture,
+            mip_level: 0,
+            origin: Origin3d::ZERO,
+            aspect: wgpu::TextureAspect::All,
+        },
+        &data,
+        ImageDataLayout {
+            offset: 0,
+            bytes_per_row: Some(
+                std::num::NonZeroU32::new(img2.texture_descriptor.size.width * 4).unwrap(),
+            ),
+            rows_per_image: if img2.texture_descriptor.size.depth_or_array_layers > 1 {
+                std::num::NonZeroU32::new(img2.texture_descriptor.size.height)
+            } else {
+                None
+            },
+        },
+        img2.texture_descriptor.size,
+    );
 }
