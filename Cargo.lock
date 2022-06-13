@@ -1616,15 +1616,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "de_geometry"
-version = "0.1.0-dev"
-dependencies = [
- "approx",
- "glam",
- "serde",
-]
-
-[[package]]
 name = "de_index"
 version = "0.1.0-dev"
 dependencies = [
