@@ -466,7 +466,7 @@ checksum = "3da0a284fb26c02cb96ef4d5bbf4de5fad7e1a901730035a61813bf64e28482e"
 dependencies = [
  "bevy-crevice-derive",
  "bytemuck",
- "glam",
+ "glam 0.20.5",
  "mint",
 ]
 
@@ -658,7 +658,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20288df0f70ff258bbaffaf55209f1271a7436438591bbffc3d81e4d84b423f2"
 dependencies = [
  "bevy_reflect",
- "glam",
+ "glam 0.20.5",
 ]
 
 [[package]]
@@ -692,7 +692,7 @@ dependencies = [
  "bevy_utils",
  "downcast-rs",
  "erased-serde",
- "glam",
+ "glam 0.20.5",
  "parking_lot",
  "serde",
  "smallvec",
@@ -1632,7 +1632,7 @@ dependencies = [
  "de_index",
  "de_pathing",
  "de_terrain",
- "glam",
+ "glam 0.20.5",
  "iyes_loopless",
  "parry3d",
 ]
@@ -1643,7 +1643,7 @@ version = "0.1.0-dev"
 dependencies = [
  "bevy",
  "enum-map",
- "glam",
+ "glam 0.20.5",
  "iyes_loopless",
  "iyes_progress",
  "nalgebra",
@@ -1661,7 +1661,7 @@ dependencies = [
  "criterion",
  "de_core",
  "de_objects",
- "glam",
+ "glam 0.20.5",
  "iyes_loopless",
  "nalgebra",
  "parry2d",
@@ -1691,7 +1691,7 @@ dependencies = [
  "async-tar",
  "bevy",
  "de_core",
- "glam",
+ "glam 0.20.5",
  "parry2d",
  "serde",
  "serde_json",
@@ -1739,7 +1739,7 @@ dependencies = [
  "de_map",
  "de_objects",
  "futures-lite",
- "glam",
+ "glam 0.20.5",
  "iyes_loopless",
  "nalgebra",
  "ntest",
@@ -1755,7 +1755,7 @@ version = "0.1.0-dev"
 dependencies = [
  "bevy",
  "de_map",
- "glam",
+ "glam 0.20.5",
  "parry3d",
 ]
 
@@ -1764,6 +1764,7 @@ name = "de_tools"
 version = "0.1.0-dev"
 dependencies = [
  "clap 3.2.6",
+ "glam 0.21.2",
  "gltf",
  "parry3d",
 ]
@@ -2027,6 +2028,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "glam"
+version = "0.21.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "781aa11be58ef14b0cd7326618afcbd9cdb5ba686bdab7193d87cdc322cd7033"
+
+[[package]]
 name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2224,7 +2231,7 @@ version = "7.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b2a63b4f20531192178b99682b8911d06108000093cb7e59acf0af342132617d"
 dependencies = [
- "glam",
+ "glam 0.20.5",
  "once_cell",
 ]
 
@@ -2685,7 +2692,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18a89248335f688e4bd994e6d030fd7e185eb41769b8c435395075425e100ac6"
 dependencies = [
  "approx",
- "glam",
+ "glam 0.20.5",
  "matrixmultiply",
  "nalgebra-macros",
  "num-complex",

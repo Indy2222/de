@@ -1,7 +1,12 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use parry3d::{bounding_volume::AABB, math::Point};
+use glam::{Mat4, Vec3};
+use parry3d::{
+    bounding_volume::AABB,
+    math::{Isometry, Point},
+    transformation,
+};
 
 #[derive(Parser)]
 #[clap(author, version, about)]
@@ -20,16 +25,33 @@ fn main() {
     let get_buffer_data = |buffer: gltf::Buffer| buffers.get(buffer.index()).map(|x| &*x.0);
 
     let (min, max) = document
-        .meshes()
-        .flat_map(|mesh| mesh.primitives())
-        .flat_map(|primitive| primitive.reader(get_buffer_data).read_positions().unwrap())
+        .scenes()
+        .flat_map(|scene| scene.nodes())
+        .filter_map(|node| match node.mesh() {
+            Some(mesh) => {
+                let trans = Mat4::from_cols_array_2d(&node.transform().matrix());
+                //let trans = trans.inverse();
+                Some((mesh, trans))
+            }
+            None => None,
+        })
+        .flat_map(|(mesh, trans)| mesh.primitives().map(move |p| (p, trans.clone())))
+        .flat_map(|(primitive, trans)| {
+            primitive
+                .reader(get_buffer_data)
+                .read_positions()
+                .unwrap()
+                .map(move |i| (i, trans.clone()))
+        })
         .fold(
             (
                 [f32::INFINITY, f32::INFINITY, f32::INFINITY],
                 [f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY],
             ),
-            |mut acc, item| {
-                for (i, &coord) in item.iter().enumerate() {
+            |mut acc, (item, trans)| {
+                let vec = trans * Vec3::from(item).extend(1.);
+
+                for (i, &coord) in [vec.x, vec.y, vec.z].iter().enumerate() {
                     acc.0[i] = acc.0[i].min(coord);
                     acc.1[i] = acc.1[i].max(coord);
                 }

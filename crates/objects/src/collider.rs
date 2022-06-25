@@ -20,7 +20,7 @@ impl ColliderCache for ObjectCache {
 
 #[derive(Clone)]
 pub struct ObjectCollider {
-    shape: TriMesh,
+    pub shape: TriMesh,
 }
 
 impl ObjectCollider {
@@ -48,7 +48,7 @@ impl From<&TriMeshShape> for ObjectCollider {
         Self::new(TriMesh::with_flags(
             vertices,
             indices,
-            TriMeshFlags::MERGE_DUPLICATE_VERTICES,
+            TriMeshFlags::MERGE_DUPLICATE_VERTICES | TriMeshFlags::ORIENTED,
         ))
     }
 }
