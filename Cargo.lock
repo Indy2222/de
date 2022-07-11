@@ -1638,6 +1638,7 @@ dependencies = [
  "de_core",
  "de_objects",
  "de_pathing",
+ "de_uom",
  "glam",
  "iyes_loopless",
  "parry3d",
@@ -1795,6 +1796,7 @@ dependencies = [
  "de_index",
  "de_map",
  "de_objects",
+ "de_uom",
  "iyes_loopless",
  "parry2d",
  "parry3d",
@@ -1824,6 +1826,7 @@ name = "de_uom"
 version = "0.1.0-dev"
 dependencies = [
  "approx",
+ "serde",
  "thiserror",
 ]
 

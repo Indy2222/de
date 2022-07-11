@@ -18,8 +18,8 @@ impl Plugin for ChasePlugin {
 #[derive(Component)]
 pub struct ChaseTarget {
     entity: Entity,
-    min_distance: f32,
-    max_distance: f32,
+    min_distance: Metre,
+    max_distance: Metre,
 }
 
 impl ChaseTarget {
@@ -40,7 +40,7 @@ impl ChaseTarget {
     /// May panic if `min_distance` or `max_distance` is not non-negative
     /// finite number or when `min_distance` is greater or equal to
     /// `max_distance`.
-    pub fn new(entity: Entity, min_distance: f32, max_distance: f32) -> Self {
+    pub fn new(entity: Entity, min_distance: Metre, max_distance: Metre) -> Self {
         debug_assert!(min_distance.is_finite());
         debug_assert!(max_distance.is_finite());
         debug_assert!(min_distance >= 0.);
@@ -58,11 +58,11 @@ impl ChaseTarget {
         self.entity
     }
 
-    fn min_distance(&self) -> f32 {
+    fn min_distance(&self) -> Metre {
         self.min_distance
     }
 
-    fn max_distance(&self) -> f32 {
+    fn max_distance(&self) -> Metre {
         self.max_distance
     }
 }

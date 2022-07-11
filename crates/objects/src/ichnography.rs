@@ -6,7 +6,7 @@ use crate::{loader::Footprint, ObjectCache};
 
 /// Padding around static object ichnographies used to accommodate for moving
 /// object trajectory smoothing and non-zero moving object sizes.
-pub const EXCLUSION_OFFSET: f32 = Metre::new_unchecked(2.);
+pub const EXCLUSION_OFFSET: Metre = Metre::new_unchecked(2.);
 
 pub trait IchnographyCache {
     fn get_ichnography(&self, object_type: ObjectType) -> &Ichnography;
@@ -43,6 +43,6 @@ impl From<&Footprint> for Ichnography {
         )
         .unwrap();
 
-        Self::new(footprint.offsetted(EXCLUSION_OFFSET))
+        Self::new(footprint.offsetted(EXCLUSION_OFFSET.into()))
     }
 }

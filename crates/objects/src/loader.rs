@@ -4,11 +4,11 @@ use bevy::{
     reflect::TypeUuid,
 };
 use de_uom::Metre;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 const OBJECT_EXTENSION: [&str; 1] = ["obj.json"];
 
-#[derive(Serialize, Deserialize, TypeUuid)]
+#[derive(Deserialize, TypeUuid)]
 #[uuid = "5f938388-ebe1-4bb2-bb66-f3e182e4e0bb"]
 pub(crate) struct ObjectInfo {
     footprint: Footprint,
@@ -30,7 +30,7 @@ impl ObjectInfo {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub(crate) struct Footprint {
     convex_hull: Vec<[f32; 2]>,
 }
@@ -41,7 +41,7 @@ impl Footprint {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub(crate) struct TriMeshShape {
     vertices: Vec<[f32; 3]>,
     indices: Vec<[u32; 3]>,
@@ -57,7 +57,7 @@ impl TriMeshShape {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 pub(crate) struct LaserCannonInfo {
     muzzle: [f32; 3],
     range: Metre,

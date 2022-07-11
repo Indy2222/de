@@ -13,8 +13,6 @@ use spade::{handles::FixedVertexHandle, ConstrainedDelaunayTriangulation, Point2
 
 use crate::exclusion::ExclusionArea;
 
-const MAP_OFFSET: Vector<f32> = Vector::new(EXCLUSION_OFFSET, EXCLUSION_OFFSET);
-
 /// Returns a triangulation of rectangular area given by `bounds` shrinked by
 /// some distance with exclusion zones.
 ///
@@ -37,10 +35,11 @@ const MAP_OFFSET: Vector<f32> = Vector::new(EXCLUSION_OFFSET, EXCLUSION_OFFSET);
 ///
 /// May panic if any of the aforementioned assumptions does not hold.
 pub(crate) fn triangulate(bounds: &MapBounds, exclusions: &[ExclusionArea]) -> Vec<Triangle> {
+    let map_offset = Vector::new(f32::from(EXCLUSION_OFFSET), f32::from(EXCLUSION_OFFSET));
     let mut triangulation = MapTriangulation::new();
     let (mins, maxs) = {
         let aabb = bounds.aabb();
-        (aabb.mins + MAP_OFFSET, aabb.maxs - MAP_OFFSET)
+        (aabb.mins + map_offset, aabb.maxs - map_offset)
     };
     triangulation.insert(Point::new(mins.x, mins.y), None);
     triangulation.insert(Point::new(mins.x, maxs.y), None);

@@ -5,4 +5,5 @@ pub use units::*;
 
 mod quantity;
 mod radians;
+mod serdeimpl;
 mod units;
