@@ -1753,6 +1753,7 @@ dependencies = [
  "anyhow",
  "bevy",
  "de_core",
+ "de_uom",
  "enum-map",
  "glam",
  "iyes_loopless",

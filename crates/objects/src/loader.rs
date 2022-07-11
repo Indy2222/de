@@ -3,6 +3,7 @@ use bevy::{
     asset::{AssetLoader, BoxedFuture, LoadContext, LoadedAsset},
     reflect::TypeUuid,
 };
+use de_uom::Metre;
 use serde::{Deserialize, Serialize};
 
 const OBJECT_EXTENSION: [&str; 1] = ["obj.json"];
@@ -59,7 +60,7 @@ impl TriMeshShape {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct LaserCannonInfo {
     muzzle: [f32; 3],
-    range: f32,
+    range: Metre,
     damage: f32,
     recharge_interval: f32,
 }
@@ -69,7 +70,7 @@ impl LaserCannonInfo {
         &self.muzzle
     }
 
-    pub(crate) fn range(&self) -> f32 {
+    pub(crate) fn range(&self) -> Metre {
         self.range
     }
 

@@ -1,11 +1,12 @@
 use de_core::objects::ObjectType;
+use de_uom::Metre;
 use parry2d::{math::Point, shape::ConvexPolygon};
 
 use crate::{loader::Footprint, ObjectCache};
 
 /// Padding around static object ichnographies used to accommodate for moving
 /// object trajectory smoothing and non-zero moving object sizes.
-pub const EXCLUSION_OFFSET: f32 = 2.;
+pub const EXCLUSION_OFFSET: f32 = Metre::new_unchecked(2.);
 
 pub trait IchnographyCache {
     fn get_ichnography(&self, object_type: ObjectType) -> &Ichnography;

@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, time::Duration};
 
 use bevy::prelude::Component;
+use de_uom::Metre;
 use glam::Vec3;
 
 use crate::loader::LaserCannonInfo;
@@ -8,7 +9,7 @@ use crate::loader::LaserCannonInfo;
 #[derive(Component, Clone)]
 pub struct LaserCannon {
     muzzle: Vec3,
-    range: f32,
+    range: Metre,
     damage: f32,
     timer: LaserTimer,
 }
@@ -21,7 +22,7 @@ impl LaserCannon {
 
     /// Maximum range of the laser in meters. Objects further than this cannot
     /// be hit.
-    pub fn range(&self) -> f32 {
+    pub fn range(&self) -> Metre {
         self.range
     }
 
