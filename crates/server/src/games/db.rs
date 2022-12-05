@@ -3,7 +3,7 @@ use log::info;
 use sqlx::{query, Pool, Sqlite};
 use thiserror::Error;
 
-use super::model::GameConfig;
+use super::model::Game;
 use crate::{auth::model::MAX_USERNAME_LEN, collision, games::model::MAX_GAME_NAME_LEN};
 
 #[derive(Clone)]
@@ -46,15 +46,34 @@ CREATE TABLE IF NOT EXISTS players (
     }
 
     // TODO docs
-    pub(super) async fn create(&self, game: GameConfig) -> Result<(), CreationError> {
+    pub(super) async fn create(&self, game: Game) -> Result<(), CreationError> {
+        let game_config = game.config();
+
         let result = query("INSERT INTO games (name, max_players) VALUES(?, ?);")
-            .bind(game.name())
-            .bind(game.max_players())
+            .bind(game_config.name())
+            .bind(game_config.max_players())
             .execute(self.pool)
             .await;
-
         collision!(result, CreationError::NameTaken);
         result.map_err(CreationError::Database)?;
+
+        for username in game.players() {
+            self.add_player(username, game_config.name()).await?;
+        }
+
+        Ok(())
+    }
+
+    pub(super) async fn add_player(&self, username: &str, game: &str) -> Result<()> {
+        // TODO transaction
+        // TODO return error if the game is full
+
+        query("INSERT INTO players (username, game) VALUES(?, ?);")
+            .bind(username)
+            .bind(game)
+            .execute(self.pool)
+            .await
+            .context("TODO")?;
         Ok(())
     }
 }
@@ -65,4 +84,6 @@ pub(super) enum CreationError {
     NameTaken,
     #[error("A database error encountered")]
     Database(#[source] sqlx::Error),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
 }

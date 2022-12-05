@@ -17,6 +17,14 @@ impl Game {
             players: vec![author],
         }
     }
+
+    pub(super) fn config(&self) -> &GameConfig {
+        &self.config
+    }
+
+    pub(super) fn players(&self) -> &[String] {
+        self.players.as_slice()
+    }
 }
 
 #[derive(Serialize, Deserialize)]

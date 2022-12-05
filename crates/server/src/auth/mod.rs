@@ -2,11 +2,13 @@ use actix_web::web;
 use anyhow::{ensure, Context, Result};
 use sqlx::{Pool, Sqlite};
 
+pub use self::token::Claims;
 use self::{db::Users, token::Tokens};
 use crate::conf;
 
 mod db;
 mod endpoints;
+mod middleware;
 pub mod model;
 mod passwd;
 mod token;
