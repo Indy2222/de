@@ -7,9 +7,7 @@ use super::{
     model::{User, UserWithPassword, UsernameAndPassword},
     passwd::{DbPassword, MAX_PASS_HASH_LEN, MAX_PASS_SALT_LEN},
 };
-use crate::auth::model::MAX_USERNAME_LEN;
-
-const SQLITE_CONSTRAINT_PRIMARYKEY: &str = "1555";
+use crate::{auth::model::MAX_USERNAME_LEN, collision};
 
 #[derive(Clone)]
 pub struct Users {
@@ -55,14 +53,7 @@ CREATE TABLE IF NOT EXISTS users (
             .execute(self.pool)
             .await;
 
-        if let Err(sqlx::Error::Database(ref error)) = result {
-            if let Some(code) = error.code() {
-                if code == SQLITE_CONSTRAINT_PRIMARYKEY {
-                    return Err(RegistrationError::UsernameTaken);
-                }
-            }
-        }
-
+        collision!(result, RegistrationError::UsernameTaken);
         result.map_err(RegistrationError::Database)?;
         Ok(())
     }
