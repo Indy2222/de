@@ -16,6 +16,7 @@ pub(crate) fn despawn_root_nodes(
     mut commands: Commands,
     nodes: Query<Entity, (With<Node>, Without<Parent>)>,
 ) {
+    // TODO
     for entity in nodes.iter() {
         commands.entity(entity).despawn_recursive();
     }
