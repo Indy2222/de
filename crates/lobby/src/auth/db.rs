@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use de_lobby_model::{User, UserWithPassword, UsernameAndPassword, MAX_USERNAME_LEN};
 use log::info;
+use sea_orm::prelude::*;
 use sqlx::{query, sqlite::SqliteRow, Pool, Row, Sqlite};
 use thiserror::Error;
 
@@ -9,6 +10,21 @@ use crate::{
     db::{FromRow, SQLITE_CONSTRAINT_PRIMARYKEY},
     db_error,
 };
+
+#[derive(Clone, Debug, DeriveEntityModel)]
+#[sea_orm(table_name = "cake")]
+struct User {
+    // TODO max CHARACTER(len)
+    #[sea_orm(primary_key)]
+    username: String,
+    pass_hash: String,
+    pass_salt: String,
+}
+
+impl ActiveModelBehavior for User {}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
 
 #[derive(Clone)]
 pub struct Users {

@@ -1,0 +1,3 @@
+let db: DatabaseConnection = Database::connect("protocol://username:password@host/database").await?;
+db.close().await?;
+
