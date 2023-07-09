@@ -1,4 +1,4 @@
-use std::{net::SocketAddr, time::Instant};
+use std::{marker::PhantomData, net::SocketAddr, time::Instant};
 
 use bevy::prelude::*;
 use de_core::baseset::GameSet;
@@ -68,6 +68,44 @@ where
     const RELIABLE: bool;
 
     fn message(&self) -> &Self::Message;
+}
+
+pub(crate) struct SendMessageEvent<M, P, const R: bool>
+where
+    M: bincode::Encode,
+    P: PortTypeMarker,
+{
+    message: M,
+    _marker: PhantomData<P>,
+}
+
+impl<M, P, const R: bool> From<M> for SendMessageEvent<M, P, R>
+where
+    M: bincode::Encode,
+    P: PortTypeMarker,
+{
+    fn from(message: M) -> Self {
+        Self {
+            message,
+            _marker: PhantomData::default(),
+        }
+    }
+}
+
+pub(crate) trait PortTypeMarker {
+    const PORT_TYPE: PortType;
+}
+
+pub(crate) struct ToServerMarker;
+
+impl PortTypeMarker for ToServerMarker {
+    const PORT_TYPE: PortType = PortType::Main;
+}
+
+pub(crate) struct ToGameMarker;
+
+impl PortTypeMarker for ToGameMarker {
+    const PORT_TYPE: PortType = PortType::Game;
 }
 
 pub(crate) struct ToMainServerEvent(ToServer);
@@ -227,7 +265,7 @@ impl From<ServerPort> for Ports {
 }
 
 #[derive(Clone, Copy)]
-enum PortType {
+pub(crate) enum PortType {
     Main,
     Game,
 }
