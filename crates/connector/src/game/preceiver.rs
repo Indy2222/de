@@ -42,6 +42,7 @@ pub(super) async fn run(
             break;
         }
 
+        // TODO timeout 10ms
         let Ok(package) = packages.recv().await else {
             break;
         };
@@ -82,4 +83,8 @@ pub(super) async fn run(
     }
 
     info!("Game player package handler on port {port} finished.");
+}
+
+async fn handle_player() {
+    // TODO
 }
