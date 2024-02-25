@@ -2,6 +2,7 @@
 //! This crate implements spatial indexing and various spatial queries of game
 //! entities.
 
+mod point;
 mod precise;
 
 use bevy::{app::PluginGroupBuilder, prelude::PluginGroup};
