@@ -10,6 +10,10 @@ impl<T> PackedVec<T> {
         PackedId::try_from(self.0.len()).ok()
     }
 
+    pub(super) fn get(&self, id: PackedId) -> Option<&T> {
+        self.0.get(usize::from(id))
+    }
+
     pub(super) fn get_mut(&mut self, id: PackedId) -> Option<&mut T> {
         self.0.get_mut(usize::from(id))
     }
@@ -35,8 +39,12 @@ impl<T> PackedVec<T> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) struct PackedId(NonZeroU16);
+
+impl PackedId {
+    pub(super) const FIRST: Self = PackedId(NonZeroU16::MIN);
+}
 
 impl fmt::Display for PackedId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

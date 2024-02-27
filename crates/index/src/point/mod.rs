@@ -1,107 +1,116 @@
 use bevy::prelude::*;
 
-use self::packed::{PackedId, PackedVec};
+use self::{
+    packed::{PackedId, PackedVec},
+    path::Half,
+};
+use crate::point::path::BinaryPath;
 
 mod packed;
+mod path;
 
 struct Tree {
     half_size: Vec2,
-    root: Child,
     nodes: PackedVec<Node>,
     buckets: PackedVec<Bucket>,
 }
 
 impl Tree {
-    fn insert(&mut self, entity: Entity, point: Vec2) {
-        let mut target = self.root;
+    fn find_bucket(&self, point: Vec2) -> (BinaryPath, PackedId) {
+        let mut path = BinaryPath::new(self.half_size, point);
 
-        while let Child::Node(id) = target {
-            // TODO find child
+        let mut target = Child::Node(PackedId::FIRST);
+        loop {
+            match target {
+                Child::Bucket(bucket_id) => break (path, bucket_id),
+                Child::Node(node_id) => {
+                    target = self.nodes.get(node_id).unwrap().get_child(path.step());
+                }
+            }
+        }
+    }
+
+    fn remove_bucket(&mut self, bucket_id: PackedId) -> Bucket {
+        let removed = self.buckets.remove(bucket_id);
+
+        if let Some(swap) = removed.swap {
+            let old = Child::Bucket(swap.old);
+            let new = Child::Bucket(swap.new);
+
+            let parent_id = self.buckets.get(swap.new).unwrap().parent;
+            self.nodes
+                .get_mut(parent_id)
+                .unwrap()
+                .replace_child(old, new);
         }
 
-        let Child::Bucket(mut bucket_id) = target else {
-            panic!("Target is not a bucket.");
-        };
+        removed.item
+    }
 
-        let Some(bucket) = self.buckets.get_mut(bucket_id) else {
-            panic!("Target bucket ID points to a non-existent bucket: {bucket_id}");
-        };
+    fn insert(&mut self, entity: Entity, point: Vec2) {
+        let (path, bucket_id) = self.find_bucket(point);
+        let bucket = self.buckets.get_mut(bucket_id).unwrap();
 
         if bucket.is_full() {
-            let removed = self.buckets.remove(bucket_id);
+            let bucket = self.remove_bucket(bucket_id);
 
-            let grandparent = removed.item.parent;
-            // TODO better error
-            let parent = self.nodes.next_id().unwrap();
+            let grandparent_id = bucket.parent;
+            let parent_id = self.nodes.next_id().unwrap();
 
-            // TODO grandparent -> new child
+            self.nodes
+                .get_mut(grandparent_id)
+                .unwrap()
+                .replace_child(Child::Bucket(bucket_id), Child::Node(parent_id));
 
-            Node::from_buckets(
-                grandparent,
-                self.buckets.push(Bucket::new(parent)),
-                self.buckets.push(Bucket::new(parent)),
-                self.buckets.push(Bucket::new(parent)),
-                self.buckets.push(Bucket::new(parent)),
+            let parent = Node::from_buckets(
+                grandparent_id,
+                self.buckets.push(Bucket::new(parent_id)),
+                self.buckets.push(Bucket::new(parent_id)),
             );
 
-            // TODO find correct bucket ID
-            // bucket_id = bucket_id;
+            let new_parent_id = self.nodes.push(parent);
+            debug_assert_eq!(new_parent_id, parent_id);
+
+            // TODO split entities from bucket to new children
+            // TODO include the new entity into the entities to be split
+            // TODO this must be done in a loop if entities happen to fall to the same bucket
+        } else {
+            bucket.insert(entity, point);
         }
-
-        let Some(bucket) = self.buckets.get_mut(bucket_id) else {
-            panic!("Target bucket ID points to a non-existent bucket: {bucket_id}");
-        };
-
-        bucket.insert(entity, point);
     }
 }
 
 struct Node {
-    // TODO custom unit type for NonZeroU16
     parent: Option<PackedId>,
-    children: [Child; 4],
+    children: [Child; 2],
 }
 
 impl Node {
-    fn from_buckets(
-        parent: PackedId,
-        top_left: PackedId,
-        top_right: PackedId,
-        bottom_left: PackedId,
-        bottom_right: PackedId,
-    ) -> Self {
+    fn from_buckets(parent: PackedId, top_left: PackedId, bottom_right: PackedId) -> Self {
         Self {
             parent: Some(parent),
-            children: [
-                Child::Bucket(top_left),
-                Child::Bucket(top_right),
-                Child::Bucket(bottom_left),
-                Child::Bucket(bottom_right),
-            ],
+            children: [Child::Bucket(top_left), Child::Bucket(bottom_right)],
         }
     }
 
-    fn x(&self, min: Vec2, max: Vec2, point: Vec2) -> (Child, Vec2, Vec2) {
-        let mid = min.lerp(max, 0.5);
-        match mid.cmplt(point).bitmask() {
-            // top-left
-            0 => (self.children[0], min, mid),
-            // top-right
-            1 => (
-                self.children[1],
-                Vec2::new(mid.x, min.y),
-                Vec2::new(max.x, mid.y),
-            ),
-            // TODO
-            // bottom-left
-            2 => {}
-            // bottom-right
-            _ => {}
+    fn replace_child(&self, from: Child, to: Child) {
+        for i in 0..self.children.len() {
+            if self.children[i] == from {
+                self.children[i] = to;
+                break;
+            }
+        }
+    }
+
+    fn get_child(&self, half: Half) -> Child {
+        match half {
+            Half::TopLeft => self.children[0],
+            Half::BottomRight => self.children[1],
         }
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 enum Child {
     Node(PackedId),
     Bucket(PackedId),
